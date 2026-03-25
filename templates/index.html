@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}仪表盘{% endblock %}
+{% block page_title %}仪表盘{% endblock %}
+{% block page_description %}书店运营数据概览{% endblock %}
+
+{% block content %}
+<!-- 数据卡片 -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <!-- 图书总数 -->
+    <div class="bg-white rounded-xl p-6 card-shadow card-hover">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm">图书总数</p>
+                <h3 class="text-3xl font-bold mt-1">{{ total_books }}</h3>
+                <p class="text-success text-sm mt-2 flex items-center">
+                    <i class="fa fa-arrow-up mr-1"></i> 较上周增长 5%
+                </p>
+            </div>
+            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+                <i class="fa fa-book text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- 今日销售额 -->
+    <div class="bg-white rounded-xl p-6 card-shadow card-hover">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm">今日销售额</p>
+                <h3 class="text-3xl font-bold mt-1">¥{{ "%.2f"|format(today_sales) }}</h3>
+                <p class="text-success text-sm mt-2 flex items-center">
+                    <i class="fa fa-arrow-up mr-1"></i> 较昨日增长 12%
+                </p>
+            </div>
+            <div class="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center text-success">
+                <i class="fa fa-rmb text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- 销售订单 -->
+    <div class="bg-white rounded-xl p-6 card-shadow card-hover">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm">今日订单</p>
+                <h3 class="text-3xl font-bold mt-1">24</h3>
+                <p class="text-danger text-sm mt-2 flex items-center">
+                    <i class="fa fa-arrow-down mr-1"></i> 较昨日下降 3%
+                </p>
+            </div>
+            <div class="w-12 h-12 bg-warning/10 rounded-lg flex items-center justify-center text-warning">
+                <i class="fa fa-shopping-cart text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- 库存预警 -->
+    <div class="bg-white rounded-xl p-6 card-shadow card-hover">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm">库存预警</p>
+                <h3 class="text-3xl font-bold mt-1">{{ low_stock_count }}</h3>
+                <p class="text-warning text-sm mt-2 flex items-center">
+                    <i class="fa fa-exclamation-triangle mr-1"></i> 需要补货
+                </p>
+            </div>
+            <div class="w-12 h-12 bg-danger/10 rounded-lg flex items-center justify-center text-danger">
+                <i class="fa fa-bell text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 销售趋势和库存状态 -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+    <!-- 销售趋势图 -->
+    <div class="bg-white rounded-xl p-6 card-shadow lg:col-span-2">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-semibold">销售趋势</h3>
+            <div class="flex space-x-2">
+                <button class="px-3 py-1 text-xs rounded-full bg-primary/10 text-primary">本周</button>
+                <button class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-500">本月</button>
+                <button class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-500">全年</button>
+            </div>
+        </div>
+
+        <div>
+            <canvas id="salesTrendChart" height="250"></canvas>
+        </div>
+    </div>
+
+    <!-- 库存状态 -->
+    <div class="bg-white rounded-xl p-6 card-shadow">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-semibold">库存状态</h3>
+            <a href="{{ url_for('books_list') }}" class="text-primary hover:underline text-sm">查看全部</a>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <div class="flex justify-between mb-1">
+                    <span class="text-sm text-gray-600">充足库存</span>
+                    <span class="text-sm font-medium">128</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-success h-2 rounded-full" style="width: 64%"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between mb-1">
+                    <span class="text-sm text-gray-600">低库存</span>
+                    <span class="text-sm font-medium text-warning">{{ low_stock_count }}</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-warning h-2 rounded-full" style="width: 12%"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between mb-1">
+                    <span class="text-sm text-gray-600">缺货</span>
+                    <span class="text-sm font-medium text-danger">5</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-danger h-2 rounded-full" style="width: 3%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 pt-6 border-t border-gray-100">
+            <h4 class="font-medium mb-3">低库存图书</h4>
+            <ul class="space-y-2">
+                {% for book in low_stock_books %}
+                <li class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center text-gray-500">
+                            <i class="fa fa-book"></i>
+                        </div>
+                        <span class="ml-2 text-sm">{{ book.bookname }}</span>
+                    </div>
+                    <span class="px-2 py-1 bg-danger/10 text-danger text-xs rounded-full">
+                        {{ book.Inventory }} 本
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- 最近销售记录 -->
+<div class="bg-white rounded-xl p-6 card-shadow mt-6">
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-semibold">最近销售记录</h3>
+        <a href="{{ url_for('sales_list') }}" class="text-primary hover:underline text-sm">查看全部</a>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-gray-200">
+                    <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">销售ID</th>
+                    <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">图书名称</th>
+                    <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">数量</th>
+                    <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">金额</th>
+                    <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">日期</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in recent_sales %}
+                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td class="py-3 px-4 text-sm text-gray-800">#{{ sale.SaleID }}</td>
+                    <td class="py-3 px-4 text-sm text-gray-800">{{ sale.book.bookname }}</td>
+                    <td class="py-3 px-4 text-sm text-gray-800">{{ sale.sell_number }}</td>
+                    <td class="py-3 px-4 text-sm text-gray-800">¥{{ "%.2f"|format(sale.sell_number * sale.book.SellingPrice) }}</td>
+                    <td class="py-3 px-4 text-sm text-gray-500">{{ sale.sell_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // 销售趋势图表
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('salesTrendChart').getContext('2d');
+
+        // 示例数据 - 实际项目中应从后端获取
+        const labels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+        const data = [1250, 1900, 1750, 2100, 1800, 2500, 2300];
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '销售额 (元)',
+                    data: data,
+                    borderColor: '#165DFF',
+                    backgroundColor: 'rgba(22, 93, 255, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        titleColor: '#1D2129',
+                        bodyColor: '#1D2129',
+                        borderColor: 'rgba(22, 93, 255, 0.2)',
+                        borderWidth: 1,
+                        padding: 12,
+                        boxPadding: 6,
+                        usePointStyle: true,
+                        callbacks: {
+                            label: function(context) {
+                                return `销售额: ¥${context.raw}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '¥' + value;
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                elements: {
+                    point: {
+                        radius: 3,
+                        hoverRadius: 5,
+                        backgroundColor: '#FFFFFF',
+                        borderColor: '#165DFF',
+                        borderWidth: 2
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

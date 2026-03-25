@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}销售记录{% endblock %}
+{% block page_title %}销售记录{% endblock %}
+{% block page_description %}查看所有销售记录{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <a href="{{ url_for('add_sale') }}" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg shadow-sm hover:bg-primary/90 transition-colors">
+        <i class="fa fa-plus mr-2"></i> 记录销售
+    </a>
+</div>
+
+<div class="bg-white rounded-xl p-6 card-shadow">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-gray-200">
+                    <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">销售ID</th>
+                    <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">图书名称</th>
+                    <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">售价</th>
+                    <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">销售数量</th>
+                    <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">销售金额</th>
+                    <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">销售日期</th>
+                    <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td class="py-3 px-4 text-sm text-gray-800">#{{ sale.SaleID }}</td>
+                    <td class="py-3 px-4 text-sm text-gray-800 font-medium">{{ sale.book.bookname }}</td>
+                    <td class="py-3 px-4 text-sm text-gray-600">¥{{ "%.2f"|format(sale.book.SellingPrice) }}</td>
+                    <td class="py-3 px-4 text-sm text-gray-800">{{ sale.sell_number }}</td>
+                    <td class="py-3 px-4 text-sm text-gray-800 font-medium">¥{{ "%.2f"|format(sale.sell_number * sale.book.SellingPrice) }}</td>
+                    <td class="py-3 px-4 text-sm text-gray-500">{{ sale.sell_date.strftime('%Y-%m-%d') }}</td>
+                    <td class="py-3 px-4">
+                        <button onclick="deleteSale({{ sale.SaleID }})" class="p-1.5 text-danger hover:text-danger/80 rounded transition-colors" title="删除">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 空状态处理 -->
+    {% if not sales %}
+    <div class="py-12 flex flex-col items-center justify-center text-center">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <i class="fa fa-shopping-cart text-gray-400 text-2xl"></i>
+        </div>
+        <h3 class="text-lg font-medium text-gray-800 mb-2">暂无销售记录</h3>
+        <p class="text-gray-500 mb-4">点击上方"记录销售"按钮来创建您的第一笔销售记录</p>
+        <a href="{{ url_for('add_sale') }}" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg shadow-sm hover:bg-primary/90 transition-colors">
+            <i class="fa fa-plus mr-2"></i> 记录销售
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // 删除销售记录确认
+    function deleteSale(id) {
+        if (confirm('确定要删除这条销售记录吗？库存不会恢复。')) {
+            fetch(`/sales/delete/${id}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('删除成功');
+                        location.reload();
+                    } else {
+                        alert('删除失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('发生错误: ' + error.message);
+                });
+        }
+    }
+</script>
+{% endblock %}

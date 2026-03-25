@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}统计分析{% endblock %}
+{% block page_title %}统计分析{% endblock %}
+{% block page_description %}书店销售数据统计与分析{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- 销售概览 -->
+    <div class="bg-white rounded-xl p-6 card-shadow lg:col-span-2">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-semibold">销售趋势</h3>
+            <div class="flex space-x-2">
+                <button class="px-3 py-1 text-xs rounded-full bg-primary/10 text-primary">月度</button>
+                <button class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-500">季度</button>
+                <button class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-500">年度</button>
+            </div>
+        </div>
+
+        <div>
+            <canvas id="salesChart" height="250"></canvas>
+        </div>
+    </div>
+
+    <!-- 销售概览卡片 -->
+    <div class="bg-white rounded-xl p-6 card-shadow">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-semibold">销售概览</h3>
+        </div>
+
+        <div class="space-y-6">
+            <div class="bg-gray-50 rounded-lg p-4">
+                <p class="text-sm text-gray-500 mb-1">总销售额</p>
+                <p class="text-2xl font-bold">¥{{ "%.2f"|format(total_sales) }}</p>
+                <p class="text-xs text-success mt-1">
+                    <i class="fa fa-arrow-up"></i> 较上月增长 12.5%
+                </p>
+            </div>
+
+            <div>
+                <p class="text-sm font-medium mb-3">畅销图书排行</p>
+                <ul class="space-y-3">
+                    {% for book, sold in top_books %}
+                    <li>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <span class="w-6 h-6 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs font-medium mr-2">
+                                    {{ loop.index }}
+                                </span>
+                                <span class="text-sm">{{ book }}</span>
+                            </div>
+                            <span class="text-sm font-medium">{{ sold }} 本</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                            <div class="bg-primary h-1.5 rounded-full" style="width: {{ sold*100/top_books[0][1] }}%"></div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 销售详细统计 -->
+<div class="mt-6 bg-white rounded-xl p-6 card-shadow">
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-semibold">销售详细统计</h3>
+        <div class="flex space-x-2">
+            <button class="px-3 py-1 text-xs rounded-full bg-primary/10 text-primary">全部</button>
+            <button class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-500">本月</button>
+            <button class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-500">今年</button>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-gray-200">
+                    <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">类别</th>
+                    <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">销售额</th>
+                    <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">销售量</th>
+                    <th class="py-3 px-4 text-left text-sm font-medium text-gray-500">占比</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 这里应该从数据库获取实际数据，以下为示例数据 -->
+                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td class="py-3 px-4 text-sm text-gray-800">小说</td>
+                    <td class="py-3 px-4 text-sm text-gray-800">¥24,560.00</td>
+                    <td class="py-3 px-4 text-sm text-gray-800">325</td>
+                    <td class="py-3 px-4">
+                        <div class="flex items-center">
+                            <div class="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 45%"></div>
+                            </div>
+                            <span class="text-xs text-gray-500">45%</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td class="py-3 px-4 text-sm text-gray-800">教材</td>
+                    <td class="py-3 px-4 text-sm text-gray-800">¥16,890.00</td>
+                    <td class="py-3 px-4 text-sm text-gray-800">215</td>
+                    <td class="py-3 px-4">
+                        <div class="flex items-center">
+                            <div class="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                                <div class="bg-secondary h-2 rounded-full" style="width: 31%"></div>
+                            </div>
+                            <span class="text-xs text-gray-500">31%</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td class="py-3 px-4 text-sm text-gray-800">工具书</td>
+                    <td class="py-3 px-4 text-sm text-gray-800">¥8,230.00</td>
+                    <td class="py-3 px-4 text-sm text-gray-800">95</td>
+                    <td class="py-3 px-4">
+                        <div class="flex items-center">
+                            <div class="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                                <div class="bg-success h-2 rounded-full" style="width: 15%"></div>
+                            </div>
+                            <span class="text-xs text-gray-500">15%</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="py-3 px-4 text-sm text-gray-800 font-medium">其他</td>
+                    <td class="py-3 px-4 text-sm text-gray-800 font-medium">¥4,320.00</td>
+                    <td class="py-3 px-4 text-sm text-gray-800 font-medium">75</td>
+                    <td class="py-3 px-4">
+                        <div class="flex items-center">
+                            <div class="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                                <div class="bg-info h-2 rounded-full" style="width: 9%"></div>
+                            </div>
+                            <span class="text-xs text-gray-500">9%</span>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // 初始化销售趋势图表
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+
+        // 从后端获取的数据，需与 app.py 中传递的数据格式匹配
+        const labels = {{ monthly_sales|map(attribute='0')|list|tojson }};
+        const data = {{ monthly_sales|map(attribute='1')|list|tojson }};
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '销售额 (元)',
+                    data: data,
+                    backgroundColor: 'rgba(22, 93, 255, 0.7)',
+                    borderColor: 'rgba(22, 93, 255, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    barPercentage: 0.6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        titleColor: '#1D2129',
+                        bodyColor: '#1D2129',
+                        borderColor: 'rgba(22, 93, 255, 0.2)',
+                        borderWidth: 1,
+                        padding: 12,
+                        boxPadding: 6,
+                        usePointStyle: true,
+                        callbacks: {
+                            label: function(context) {
+                                return `销售额: ¥${context.raw.toLocaleString()}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '¥' + value.toLocaleString();
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
