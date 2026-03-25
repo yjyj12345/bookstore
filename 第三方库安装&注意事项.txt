@@ -1,0 +1,4 @@
+Flask、Flask-SQLAlchemy、PyMySQL、Jinja2
+app。py里面的这个语句：
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://用户名:密码@localhost:端口号/bookstore'
+需要改成你们对应的用户名，密码，端口。
